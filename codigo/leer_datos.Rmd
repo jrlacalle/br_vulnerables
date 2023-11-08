@@ -1,0 +1,110 @@
+---
+title: "Prueba"
+output:
+  pdf_document: default
+---
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning=FALSE)
+library(tidyverse)
+library(kableExtra)
+library(readr)
+```
+
+```{r}
+datos_v4 <- read_delim("~/vulnerables/datos/Termômetro Social COVID-19_Versão 4.0.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE)
+```
+
+```{r}
+datos <- datos_v4 %>% 
+select("Sexo/Gênero:", "Cor/Raça", "Qual é a sua PRINCIPAL ocupação atual?", "Tipo de moradia que reside:  Principal moradia", Escolaridade, "Qual o rendimento mensal da sua família?", "Você recebe algum destes auxílios governamentais ?")
+```
+
+```{r}
+# spec(datos_v4)
+```
+
+# Tablas descriptivas
+
+## Sexo
+
+```{r}
+datos %>% 
+  group_by(`Sexo/Gênero:`) %>% 
+  summarize(
+    frecuencia=n()
+  ) %>% 
+  mutate(porcentaje=(frecuencia/sum(frecuencia))*100) %>% 
+  kable(digits = c(0,0,1))
+```
+
+## Cor
+```{r}
+datos %>% 
+  group_by(`Cor/Raça`) %>% 
+  summarize(
+    frecuencia=n()
+  ) %>% 
+  mutate(porcentaje=(frecuencia/sum(frecuencia))*100) %>% 
+  kable(digits = c(0,0,1))
+```
+
+## Ocupação
+
+```{r}
+datos %>% 
+  group_by(`Qual é a sua PRINCIPAL ocupação atual?`) %>% 
+  summarize(
+    frecuencia=n()
+  ) %>% 
+  mutate(porcentaje=(frecuencia/sum(frecuencia))*100) %>% 
+  kable(digits = c(0,0,1))
+```
+
+## Moradia
+
+```{r}
+datos_v4 %>% 
+  group_by(`Tipo de moradia que reside:  Principal moradia`) %>% 
+  summarize(
+    frecuencia=n()
+  ) %>% 
+  mutate(porcentaje=(frecuencia/sum(frecuencia))*100) %>% 
+  kable(digits = c(0,0,1))
+```
+
+## Escolaridade
+
+```{r}
+datos %>% 
+  group_by(`Escolaridade`) %>% 
+  summarize(
+    frecuencia=n()
+  ) %>% 
+  mutate(porcentaje=(frecuencia/sum(frecuencia))*100) %>% 
+  kable(digits = c(0,0,1))
+```
+
+## Renta e auxilios
+
+```{r}
+datos %>% 
+  group_by(`Qual o rendimento mensal da sua família?`) %>% 
+  summarize(
+    frecuencia=n()
+  ) %>% 
+  mutate(porcentaje=(frecuencia/sum(frecuencia))*100) %>% 
+  kable(digits = c(0,0,1))
+```
+
+```{r}
+datos %>% 
+  group_by(`Você recebe algum destes auxílios governamentais ?`) %>% 
+  summarize(
+    frecuencia=n()
+  ) %>% 
+  mutate(porcentaje=(frecuencia/sum(frecuencia))*100) %>% 
+  kable(digits = c(0,0,1))
+```
+
