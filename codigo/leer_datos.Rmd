@@ -12,7 +12,7 @@ library(readr)
 ```
 
 ```{r}
-datos_v4 <- read_delim("~/vulnerables/datos/Termômetro Social COVID-19_Versão 4.0.csv", 
+datos_v4 <- read_delim("~/brvulnerable/datos/Termômetro Social COVID-19_Versão 4.0.csv", 
     delim = ";", escape_double = FALSE, trim_ws = TRUE)
 ```
 
