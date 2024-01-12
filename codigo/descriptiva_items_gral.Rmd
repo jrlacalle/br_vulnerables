@@ -1,0 +1,294 @@
+---
+title: "Descriptiva preguntas Termómetro"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+  word_document: default
+---
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning=FALSE)
+library(tidyverse)
+library(kableExtra)
+library(readr)
+library(ufs)
+```
+
+
+```{r, warning=FALSE}
+datos_v4 <- read_delim("~/brvulnerable/datos/Termômetro Social COVID-19_Versão 4.0.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE, show_col_types = F)
+# Cambiar el género a factor
+datos_v4[[15]] <- as.factor(datos_v4[[15]])
+table(datos_v4[[15]], useNA = "always")
+```
+
+\newpage
+
+## Medidas para evitar la infección COVID  
+
+```{r tabla1a}
+vulnerables <- datos_v4 %>% 
+  select(c(42:53))
+subconj <-names(vulnerables[,1:ncol(vulnerables)])
+c <- as.numeric(ncol(vulnerables))
+l <- str_length(subconj)
+m <- str_locate(subconj, "=")
+n <- str_sub(subconj, m[,2]+1, l-1)
+names(vulnerables) <- n
+vulnerables <- vulnerables %>% 
+  mutate(across(1:ncol(vulnerables), as.factor)) %>% 
+  mutate(across(where(is.factor), as.numeric)) %>% 
+  mutate(across(everything(), recode,"1"="0", "2"="1"))
+salida <- multiResponse (vulnerables ) 
+tabla <- salida %>%
+  select(-3) %>% 
+  filter(str_trim(Option,side="right") != "Total") 
+kable(tabla, col.names= c("Respuesta", "Frequência", "Porcentagem (n=3237)"), digits = 1,
+      caption="Tabela 1: Que medidas você têm adotado para não ficar infectado com a COVID-19, de acordo com as recomendações do Ministério da Saúde?") %>% 
+  kable_paper(full_width = F) %>% 
+  column_spec(1, width = "30em")
+```
+
+\newpage
+
+## Confianza en las instituciones
+
+```{r tabla2}
+vulnerables <- datos_v4 %>% 
+  select(75:81)
+# Ojo. Revisar. Las respuestas no son iguales
+subconj <- names(vulnerables[,1:ncol(vulnerables)])
+# c <- as.numeric(ncol(vulnerables))
+# l <- str_length(subconj)
+# m <- str_locate(subconj, "=")
+# n <- str_sub(subconj, m[,2]+1, l-1)
+names(vulnerables) <- c("Governo Federal", "Governo Estadual", "Governo Municipal", "Hospital", "Hospital de Campanha", 
+"Unidade de Pronto Atendimento (UPA) / Emergência", "Unidade Básica de Saúde/ Posto de Saúde")
+vulnerables <- vulnerables %>% 
+  mutate(across(1:ncol(vulnerables), as.factor)) %>% 
+  mutate(across(where(is.factor), as.numeric)) %>% 
+  mutate(across(everything(), recode,"1"="0", "2"="1"))
+salida <- multiResponse (vulnerables ) 
+tabla <- salida %>%
+  select(-3) %>% 
+  filter(str_trim(Option,side="right") != "Total") 
+kable(tabla, col.names= c("Respuesta", "Frequência", "Porcentagem (n=3237)"), digits = 1,
+      caption="Tabela 2: Confiança na capacidade para enfrentar a COVID-19") %>% 
+    kable_paper(full_width = F) %>% 
+  column_spec(1, width = "30em")
+```
+
+\newpage
+
+## Fuente de información sobre la infección
+
+```{r tabla3}
+vulnerables <- datos_v4 %>% 
+  select(c(82:94))
+subconj <-names(vulnerables[,1:ncol(vulnerables)])
+c <- as.numeric(ncol(vulnerables))
+l <- str_length(subconj)
+m <- str_locate(subconj, "=")
+n <- str_sub(subconj, m[,2]+1, l-1)
+names(vulnerables) <- n
+vulnerables <- vulnerables %>% 
+  mutate(across(1:ncol(vulnerables), as.factor)) %>% 
+  mutate(across(where(is.factor), as.numeric)) %>% 
+  mutate(across(everything(), recode,"1"="0", "2"="1"))
+salida <- multiResponse (vulnerables ) 
+tabla <- salida %>%
+  select(-3) %>% 
+  filter(str_trim(Option,side="right") != "Total") 
+kable(tabla, col.names= c("Respuesta", "Frequência", "Porcentagem (n=3237)"), digits = 1,
+      caption="Tabela 3: Qual fonte de informação você utiliza para se manter informado sobre a COVID-19?") %>% 
+    kable_paper(full_width = F) %>% 
+  column_spec(1, width = "30em")
+```
+
+\newpage
+
+## Estado anímico
+
+```{r tabla4}
+vulnerables <- datos_v4 %>% 
+  select(c(99:107))
+# Revisar lo que pasa con variable 98
+subconj <- names(vulnerables[,1:ncol(vulnerables)])
+c <- as.numeric(ncol(vulnerables))
+l <- str_length(subconj)
+m <- str_locate(subconj, "=")
+n <- str_sub(subconj, m[,2]+1, l-1)
+names(vulnerables) <- n
+vulnerables <- vulnerables %>% 
+  mutate(across(1:ncol(vulnerables), as.factor)) %>% 
+  mutate(across(where(is.factor), as.numeric)) %>% 
+  mutate(across(everything(), recode,"1"="0", "2"="1"))
+salida <- multiResponse (vulnerables )
+tabla <- salida %>%
+  select(-3) %>% 
+  filter(str_trim(Option,side="right") != "Total") 
+kable(tabla, col.names= c("Respuesta", "Frequência", "Porcentagem (n=3237)"), digits = 1,
+      caption="Tabela 4: Comparando com o período anterior a COVID-19, como você tem se sentido na maior parte do tempo?") %>% 
+    kable_paper(full_width = F) %>% 
+  column_spec(1, width = "30em")
+```
+
+\newpage
+
+## Actividades de la vida diaria
+
+```{r tabla4bis}
+vulnerables <- datos_v4 %>% 
+  select(c(108:116))
+subconj <-names(vulnerables[,1:ncol(vulnerables)])
+c <- as.numeric(ncol(vulnerables))
+l <- str_length(subconj)
+m <- str_locate(subconj, "=")
+n <- str_sub(subconj, m[,2]+1, l-1)
+names(vulnerables) <- n
+vulnerables <- vulnerables %>% 
+  mutate(across(1:ncol(vulnerables), as.factor)) %>% 
+  mutate(across(where(is.factor), as.numeric)) %>% 
+  mutate(across(everything(), recode,"1"="0", "2"="1"))
+salida <- multiResponse (vulnerables ) 
+tabla <- salida %>%
+  select(-3) %>% 
+  filter(str_trim(Option,side="right") != "Total") 
+kable(tabla, col.names= c("Respuesta", "Frequência", "Porcentagem (n=3237)"), digits = 1,
+      caption="Tabela 4: Nos últimos meses, o que você tem feito para lidar com a atual situação da pandemia COVID-19?") %>% 
+    kable_paper(full_width = F) %>% 
+  column_spec(1, width = "30em")
+```
+
+\newpage
+
+## Situaciones observadas de violencia
+
+```{r tabla5}
+vulnerables <- datos_v4 %>% 
+  select(c(143:164))
+subconj <-names(vulnerables[,1:ncol(vulnerables)])
+c <- as.numeric(ncol(vulnerables))
+l <- str_length(subconj)
+m <- str_locate(subconj, "=")
+n <- str_sub(subconj, m[,2]+1, l-1)
+names(vulnerables) <- n
+vulnerables <- vulnerables %>% 
+  mutate(across(1:ncol(vulnerables), as.factor)) %>% 
+  mutate(across(where(is.factor), as.numeric)) %>% 
+  mutate(across(everything(), recode,"1"="0", "2"="1"))
+salida <- multiResponse (vulnerables ) 
+tabla <- salida %>%
+  select(-3) %>% 
+  filter(str_trim(Option,side="right") != "Total") 
+kable(tabla, col.names= c("Respuesta", "Frequência", "Porcentagem (n=3237)"), digits = 1,
+      caption="Tabela 5: Quais das situações abaixo você tem VISTO/PRESENCIADO NO SEU LOCAL DE MORADIA, VIZINHANÇA ou COMUNIDADE durante à pandemia da COVID-19?") %>% 
+    kable_paper(full_width = F) %>% 
+    column_spec(1, width = "30em")
+```
+
+\newpage
+
+## Situaciones sufridas de violencia
+
+```{r tabla6}
+vulnerables <- datos_v4 %>% 
+  select(c(167:188))
+subconj <- names(vulnerables[,1:ncol(vulnerables)])
+c <- as.numeric(ncol(vulnerables))
+l <- str_length(subconj)
+m <- str_locate(subconj, "=")
+n <- str_sub(subconj, m[,2]+1, l-1)
+names(vulnerables) <- n
+vulnerables <- vulnerables %>% 
+  mutate(across(1:ncol(vulnerables), as.factor)) %>% 
+  mutate(across(where(is.factor), as.numeric)) %>% 
+  mutate(across(everything(), recode,"1"="0", "2"="1"))
+salida <- multiResponse (vulnerables ) 
+tabla <- salida %>%
+  select(-3) %>% 
+  filter(str_trim(Option,side="right") != "Total") 
+kable(tabla, col.names= c("Respuesta", "Frequência", "Porcentagem (n=3237)"), digits = 1,
+      caption="Tabela 6: Quais das situações abaixo VOCÊ E/OU SUA FAMÍLIA TEM VIVIDO NO SEU LOCAL DE MORADIA, VIZINHANÇA ou COMUNIDADE durante à pandemia da COVID-19?")
+```
+
+\newpage
+
+## Ayuda después del diagnóstico COVID 
+
+```{r tabla7}
+vulnerables <- datos_v4 %>% 
+  select(c(206:214))
+subconj <- names(vulnerables[,1:ncol(vulnerables)])
+c <- as.numeric(ncol(vulnerables))
+l <- str_length(subconj)
+m <- str_locate(subconj, "=")
+n <- str_sub(subconj, m[,2]+1, l-1)
+names(vulnerables) <- n
+vulnerables <- vulnerables %>% 
+  mutate(across(1:ncol(vulnerables), as.factor)) %>% 
+  mutate(across(where(is.factor), as.numeric)) %>% 
+  mutate(across(everything(), recode,"1"="0", "2"="1"))
+salida <- multiResponse (vulnerables ) 
+tabla <- salida %>%
+  select(-3) %>% 
+  filter(str_trim(Option,side="right") != "Total") 
+kable(tabla, col.names= c("Respuesta", "Frequência", "Porcentagem (n=3237)"), digits = 1,
+      caption="Tabela 7: A quem você recorreu após diagnosticado com COVID-19?") %>% 
+    kable_paper(full_width = F) %>% 
+    column_spec(1, width = "30em")
+```
+
+\newpage
+
+## Fuentes de información sobre vacunas
+
+```{r tabla8}
+vulnerables <- datos_v4 %>% 
+  select(c(247:259))
+subconj <- names(vulnerables[,1:ncol(vulnerables)])
+c <- as.numeric(ncol(vulnerables))
+l <- str_length(subconj)
+m <- str_locate(subconj, "=")
+n <- str_sub(subconj, m[,2]+1, l-1)
+names(vulnerables) <- n
+vulnerables <- vulnerables %>% 
+  mutate(across(1:ncol(vulnerables), as.factor)) %>% 
+  mutate(across(where(is.factor), as.numeric)) %>% 
+  mutate(across(everything(), recode,"1"="0", "2"="1"))
+salida <- multiResponse (vulnerables ) 
+tabla <- salida %>%
+  select(-3) %>% 
+  filter(str_trim(Option,side="right") != "Total") 
+kable(tabla, col.names= c("Respuesta", "Frequência", "Porcentagem (n=3237)"), digits = 1,
+      caption="Tabela 8: Qual é a fonte de informação mais comum que você recorre para obter informações sobre as vacinas contra a COVID-19?") %>% 
+    kable_paper(full_width = F) %>% 
+    column_spec(1, width = "30em")
+```
+
+\newpage
+
+## Nivel de confianza sobre las vacunas
+
+```{r tabla9}
+vulnerables <- datos_v4 %>% 
+  select(c(261:263))
+subconj <-names(vulnerables[,1:ncol(vulnerables)])
+names(vulnerables) <- c("Governo Federal", "Governo Estadual", "Governo Municipal")
+vulnerables <- vulnerables %>% 
+  mutate(across(1:ncol(vulnerables), as.factor)) %>% 
+  mutate(across(where(is.factor), as.numeric)) %>% 
+  mutate(across(everything(), ~ ifelse(. %in% c(1,2),1,0)))
+salida <- multiResponse (vulnerables )
+tabla <- salida %>%
+  select(-3) %>% 
+  filter(str_trim(Option,side="right") != "Total") 
+kable(tabla, col.names= c("Respuesta", "Frequência", "Porcentagem (n=3237)"), digits = 1,
+      caption="Tabela 9: Qual o seu nível de confiança no Governo Federal sobre às vacinas contra a COVID-19?") %>% 
+    kable_paper(full_width = F) %>% 
+    column_spec(1, width = "30em")
+```
