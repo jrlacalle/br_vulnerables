@@ -62,16 +62,12 @@ vulnerables <- datos_v4 %>%
   select(75:81)
 # Ojo. Revisar. Las respuestas no son iguales
 subconj <- names(vulnerables[,1:ncol(vulnerables)])
-# c <- as.numeric(ncol(vulnerables))
-# l <- str_length(subconj)
-# m <- str_locate(subconj, "=")
-# n <- str_sub(subconj, m[,2]+1, l-1)
 names(vulnerables) <- c("Governo Federal", "Governo Estadual", "Governo Municipal", "Hospital", "Hospital de Campanha", 
 "Unidade de Pronto Atendimento (UPA) / Emergência", "Unidade Básica de Saúde/ Posto de Saúde")
 vulnerables <- vulnerables %>% 
   mutate(across(1:ncol(vulnerables), as.factor)) %>% 
   mutate(across(where(is.factor), as.numeric)) %>% 
-  mutate(across(everything(), recode,"1"="0", "2"="1"))
+  mutate(across(everything(), recode,"3"=0, "4"=0, "1"=1, "2"=1))
 salida <- multiResponse (vulnerables ) 
 tabla <- salida %>%
   select(-3) %>% 

@@ -44,7 +44,7 @@ vulnerables <- vulnerables %>%
   mutate(across(1:ncol(vulnerables), as.factor)) %>% 
   mutate(across(where(is.factor), as.numeric)) %>% 
   mutate(across(everything(), recode,"1"="0", "2"="1"))
-salida <- multiResponse (vulnerables ) %>% 
+salida <- multiResponse (vulnerables) %>% 
   arrange(desc(Frequency))
 tabla <- salida %>%
   select(-3) %>% 
