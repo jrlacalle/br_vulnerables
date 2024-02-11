@@ -1,0 +1,74 @@
+---
+title: "intersectionalidad_1"
+author: "Juan Ramon Lacalle"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning=FALSE)
+library(tidyverse)
+library(kableExtra)
+library(readr)
+```
+
+
+```{r, warning=FALSE}
+datos_v4 <- read_delim("~/brvulnerable/datos/Termômetro Social COVID-19_Versão 4.0.csv", 
+    delim = ";", escape_double = FALSE, trim_ws = TRUE, show_col_types = F)
+# Cambiar el género a factor
+datos_v4[[15]] <- as.factor(datos_v4[[15]])
+```
+
+\newpage
+
+## Número de alteraciones estado anímico
+
+```{r interese_1}
+intersec_1 <- datos_v4 %>% 
+  select(c(99:108)) %>% 
+# La pregunta incluye la columna 109, pero es Ninguna de las anteriores
+  mutate(across(1:10, as.factor)) %>% 
+  mutate(across(1:10, as.numeric)) %>% 
+  mutate(across(everything(), recode,"1"=0, "2"=1)) %>% 
+  rowwise() %>% 
+  summarise(n_mental=sum(c_across(1:10)))
+```
+
+\newpage
+
+## Número de situaciones observadas de violencia
+
+```{r intersec_2}
+intersec_2 <- datos_v4 %>% 
+  select(c(143:163)) %>% 
+# La pregunta incluye la columna 164, pero es Ninguna de las anteriores
+  mutate(across(1:21, as.factor)) %>% 
+  mutate(across(1:21, as.numeric)) %>% 
+  mutate(across(everything(), recode,"1"=0, "2"=1)) %>% 
+  rowwise() %>% 
+  summarise(n_violencia_1=sum(c_across(1:21)))
+```
+
+
+\newpage
+
+## Número de situaciones sufridas de violencia
+
+```{r intersec_3}
+intersec_3 <- datos_v4 %>% 
+  select(c(167:187)) %>% 
+# La pregunta incluye la columna 188, pero es Ninguna de las anteriores
+  mutate(across(1:21, as.factor)) %>% 
+  mutate(across(1:21, as.numeric)) %>% 
+  mutate(across(everything(), recode,"1"=0, "2"=1)) %>% 
+  rowwise() %>% 
+  summarise(nviolencia_2=sum(c_across(1:21)))
+```
+
+## Unión de los ficheros
+
+```{r union}
+datos <- cbind.data.frame(intersec_1, intersec_2, intersec_3)
+```
+
