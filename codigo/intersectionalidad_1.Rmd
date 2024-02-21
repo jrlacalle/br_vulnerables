@@ -10,37 +10,47 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning=FALSE)
 library(tidyverse)
 library(kableExtra)
 library(readr)
+library(AER) # Paquete para comprobar la sobre dispersión
 ```
 
 
 ```{r, warning=FALSE}
 datos_v4 <- read_delim("~/brvulnerable/datos/Termômetro Social COVID-19_Versão 4.0.csv", 
     delim = ";", escape_double = FALSE, trim_ws = TRUE, show_col_types = F)
-# Cambiar el género a factor
-datos_v4[[15]] <- as.factor(datos_v4[[15]])
+
+# Categorías de covariables
+datos_v4 <- datos_v4 %>% 
+  rename(s="Sexo/Gênero:",
+         r="Cor/Raça") %>% 
+  mutate(s=na_if(s, "Pessoa transexual")) %>% 
+  mutate(s=na_if(s, "Outro")) %>%
+  mutate(sexo=fct_collapse(as.factor(s)),homem="Homem", mulher="Mulher") %>% 
+  mutate(escolaridade=fct_collapse(as.factor(Escolaridade),
+                 Fundamental=c("Fundamental completo","Fundamental incompleto","Sem escolaridade"),
+                 Secundario= c("Secundário completo", "Secundário incompleto"),
+                 Superior= c("Pós-graduação","Superior completo","Superior incompleto"))) %>% 
+  mutate(raca=fct_collapse(as.factor(r), branca="Branca", preta = c("Preta/Parda","Amarela","Indígena","Sem declaração")))
+levels(datos_v4$escolaridade) <- c("Fundamental", "Secundario", "Superior")
+covariables <- datos_v4 %>% 
+  select(sexo, raca, escolaridade)
 ```
 
-\newpage
 
-## Número de alteraciones estado anímico
+```{r}
+table(datos_v4[15])
+levels(datos_v4$sexo)
 
-```{r interese_1}
-intersec_1 <- datos_v4 %>% 
-  select(c(99:108)) %>% 
-# La pregunta incluye la columna 109, pero es Ninguna de las anteriores
-  mutate(across(1:10, as.factor)) %>% 
-  mutate(across(1:10, as.numeric)) %>% 
-  mutate(across(everything(), recode,"1"=0, "2"=1)) %>% 
-  rowwise() %>% 
-  summarise(n_mental=sum(c_across(1:10)))
+fct_count(datos_v4$sexo)
+table(datos_v4[17])
+fct_count(datos_v4$raca)
+table(datos_v4$Escolaridade)
+fct_count(datos_v4$escolaridade)
 ```
-
-\newpage
 
 ## Número de situaciones observadas de violencia
 
-```{r intersec_2}
-intersec_2 <- datos_v4 %>% 
+```{r intersec_1}
+intersec_1 <- datos_v4 %>% 
   select(c(143:163)) %>% 
 # La pregunta incluye la columna 164, pero es Ninguna de las anteriores
   mutate(across(1:21, as.factor)) %>% 
@@ -50,25 +60,155 @@ intersec_2 <- datos_v4 %>%
   summarise(n_violencia_1=sum(c_across(1:21)))
 ```
 
-
-\newpage
-
 ## Número de situaciones sufridas de violencia
 
-```{r intersec_3}
-intersec_3 <- datos_v4 %>% 
+```{r intersec_2}
+intersec_2 <- datos_v4 %>% 
   select(c(167:187)) %>% 
 # La pregunta incluye la columna 188, pero es Ninguna de las anteriores
   mutate(across(1:21, as.factor)) %>% 
   mutate(across(1:21, as.numeric)) %>% 
   mutate(across(everything(), recode,"1"=0, "2"=1)) %>% 
   rowwise() %>% 
-  summarise(nviolencia_2=sum(c_across(1:21)))
+  summarise(n_violencia_2=sum(c_across(1:21)))
+```
+
+## Número de alteraciones estado anímico
+
+```{r intersec_3}
+intersec_3 <- datos_v4 %>% 
+  select(c(99:108)) %>% 
+# La pregunta incluye la columna 109, pero es Ninguna de las anteriores
+  mutate(across(1:10, as.factor)) %>% 
+  mutate(across(1:10, as.numeric)) %>% 
+  mutate(across(everything(), recode,"1"=0, "2"=1)) %>% 
+  rowwise() %>% 
+  summarise(n_mental=sum(c_across(1:10)))
 ```
 
 ## Unión de los ficheros
 
 ```{r union}
-datos <- cbind.data.frame(intersec_1, intersec_2, intersec_3)
+datos <- cbind.data.frame(covariables, intersec_1, intersec_2, intersec_3)
 ```
 
+
+## Ajuste del modelo de Poisson para violencia observada
+
+```{r poisson1}
+p1 <- datos %>% 
+  select(sexo, raca, escolaridade, n_violencia_1) 
+poisson.1 <- glm(n_violencia_1 ~ .,
+                     family = 'poisson', data = p1)
+summary(poisson.1)
+```
+
+La bondad del ajuste es 
+```{r poisson1_ajuste}
+1-pchisq(poisson.1$deviance, poisson.1$df.residual)
+```
+
+La validez del modelo, valorada con la ji-cuadrada de Pearxon es
+```{r validez_1_1}
+Pearson <- sum((p1$n_violencia_1 - poisson.1$fitted.values)^2 
+               / poisson.1$fitted.values)
+1 - pchisq(Pearson, df = poisson.1$df.residual)
+```
+
+Comprobamos la sobredispersión, usando la regla empírica de la desviación resiudal/grados de libertad.
+
+```{r}
+Pearson / poisson.1$df.residual
+```
+
+Aparentemente, hay un cierto grado de sobredispersión.  
+Lo comprobamos meidante un test específico:
+```{r}
+dispersiontest(poisson.1)
+```
+
+Por esa razón, ajustamos un modelo de quasipoisson
+```{r quasipoisson.1}
+summary(qp.1<-glm(n_violencia_1 ~ .,family=quasipoisson,data=p1))
+```
+
+
+## Ajuste del modelo de Poisson para violencia percibida
+
+```{r poisson2}
+p2 <- datos %>% 
+  select(sexo, raca, escolaridade, n_violencia_2) 
+poisson.2 <- glm(n_violencia_2 ~ .,
+                     family = 'poisson', data = p2)
+summary(poisson.2)
+```
+
+La bondad del ajuste
+
+```{r poisson2_ajuste}
+1-pchisq(poisson.2$deviance, poisson.2$df.residual)
+```
+
+
+La validez del modelo, valorada con la ji-cuadrada de Pearson es
+```{r validez_2_1}
+Pearson <- sum((p2$n_violencia_2 - poisson.2$fitted.values)^2 
+               / poisson.2$fitted.values)
+1 - pchisq(Pearson, df = poisson.2$df.residual)
+```
+
+Comprobamos la sobredispersión, usando la regla empírica de la desviación resiudal/grados de libertad.
+
+```{r}
+Pearson / poisson.2$df.residual
+```
+
+Aparentemente, hay un cierto grado de sobredispersión.  
+Lo comprobamos meidante un test específico:
+```{r}
+dispersiontest(poisson.2)
+```
+
+Por esa razón, ajustamos un modelo de quasipoisson
+```{r quasipoisson.2}
+summary(qp.2<-glm(n_violencia_2  ~ .,family=quasipoisson,data=p2))
+```
+
+
+## Ajuste del modelo de Poisson para estado de ánimo
+```{r poisson3}
+p3 <- datos %>% 
+  select(sexo, raca, escolaridade, n_mental) 
+poisson.3 <- glm(n_mental ~ .,
+                     family = 'poisson', data = p3)
+summary(poisson.3)
+```
+
+La bondad del ajuste
+```{r poisson3_ajuste}
+1-pchisq(poisson.3$deviance, poisson.3$df.residual)
+```
+
+La validez del modelo, valorada con la ji-cuadrada de Pearson es
+```{r validez_3_1}
+Pearson <- sum((p2$n_mental - poisson.3$fitted.values)^2 
+               / poisson.3$fitted.values)
+1 - pchisq(Pearson, df = poisson.3$df.residual)
+```
+
+Comprobamos la sobredispersión, usando la regla empírica de la desviación resiudal/grados de libertad.
+
+```{r}
+Pearson / poisson.3$df.residual
+```
+
+Aparentemente, hay un cierto grado de sobredispersión.  
+Lo comprobamos mediante un test específico:
+```{r}
+dispersiontest(poisson.3)
+```
+
+Por esa razón, ajustamos un modelo de quasipoisson
+```{r quasipoisson.3}
+summary(qp.3<-glm(n_mental ~ .,family=quasipoisson,data=p3))
+```
